@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Shop Checkout</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .error { color: red; font-size: 0.9em; display: none; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="text"], input[type="email"] { width: 100%; padding: 8px; }
+        button { padding: 10px 20px; cursor: pointer; }
+        #pay-now-btn { background-color: green; color: white; border: none; }
+        .cart-item { border-bottom: 1px solid #ccc; padding: 10px 0; }
+        .discount-message { margin-top: 10px; font-weight: bold; }
+        .error-message { color: red; }
+        .success-message { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Checkout</h1>
+    
+    <div id="cart-summary">
+        <h2>Cart Summary</h2>
+        <div class="cart-item">
+            <span>Wireless Headphones</span>
+            <input type="number" id="qty-1" value="1" min="1" style="width: 50px;">
+            <span>$100.00</span>
+            <button class="update-cart" id="update-1">Update</button>
+        </div>
+        <div class="cart-item">
+            <span>Smart Watch</span>
+            <input type="number" id="qty-2" value="1" min="1" style="width: 50px;">
+            <span>$200.00</span>
+            <button class="update-cart" id="update-2">Update</button>
+        </div>
+        <div class="form-group">
+            <label for="discount-code">Discount Code</label>
+            <input type="text" id="discount-code" placeholder="Enter code">
+            <button id="apply-discount">Apply</button>
+            <div id="discount-message-container"></div>
+        </div>
+        <h3>Total: $<span id="total-price">300.00</span></h3>
+    </div>
+
+    <form id="checkout-form">
+        <h2>Shipping Details</h2>
+        <div class="form-group">
+            <label>Shipping Method</label>
+            <div>
+                <input type="radio" name="shipping" id="shipping-standard" value="standard" checked>
+                <label for="shipping-standard" style="display:inline;">Standard (Free)</label>
+            </div>
+            <div>
+                <input type="radio" name="shipping" id="shipping-express" value="express">
+                <label for="shipping-express" style="display:inline;">Express ($10.00)</label>
+            </div>
+        </div>
+    </form>
+</body>
+</html>
