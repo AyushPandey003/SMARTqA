@@ -242,7 +242,8 @@ git clone https://github.com/AyushPandey003/SMARTqA.git
 cd SMARTqA
 
 # 2. Install uv (if not already installed)
-pip install uv
+# Check if uv is installed: uv --version
+# If not installed, run: pip install uv
 
 # 3. Install dependencies with uv
 uv pip install -r requirements.txt
