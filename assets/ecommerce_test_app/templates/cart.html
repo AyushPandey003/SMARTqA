@@ -1,43 +1,135 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 2rem auto;">
-    <h2 style="margin-bottom: 2rem;">Your Cart</h2>
+<div class="container mx-auto px-4 py-8 pb-32 md:pb-8">
+    <h1 class="mb-8 text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">My Cart</h1>
 
     {% if items %}
-    <div style="background: white; border-radius: 1rem; box-shadow: var(--shadow-sm); overflow: hidden;">
-        <div class="cart-items">
+    <div class="flex flex-col gap-8 lg:flex-row">
+        <!-- Cart Items List -->
+        <div class="flex flex-1 flex-col gap-4">
             {% for item in items %}
-            <div class="cart-item" style="padding: 1.5rem;">
-                <div class="cart-item-info">
-                    <h4>{{ item.product.name }}</h4>
-                    <span class="cart-item-price">${{ "%.2f"|format(item.product.price) }} x {{ item.quantity }}</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <span style="font-weight: 600;">${{ "%.2f"|format(item.product.price * item.quantity) }}</span>
-                    <a href="{{ url_for('remove_from_cart', item_id=item.id) }}" class="remove-btn">
-                        <i class="fas fa-trash"></i>
-                    </a>
+            <div class="flex gap-4 rounded-xl bg-white p-4 shadow-sm dark:bg-zinc-900/50">
+                <div class="h-24 w-24 shrink-0 rounded-lg bg-cover bg-center bg-no-repeat"
+                    style="background-image: url('{{ item.product.image_url }}')"></div>
+                <div class="flex flex-1 flex-col">
+                    <div class="flex items-start justify-between">
+                        <div class="flex flex-col">
+                            <a href="{{ url_for('product_detail', product_id=item.product.id) }}">
+                                <p class="text-base font-medium leading-normal text-zinc-900 dark:text-white">{{
+                                    item.product.name }}</p>
+                            </a>
+                            <p class="text-sm font-normal leading-normal text-zinc-500 dark:text-zinc-400">{{
+                                item.product.category or 'General' }}</p>
+                        </div>
+                        <a href="{{ url_for('remove_from_cart', item_id=item.id) }}"
+                            class="-mr-1 -mt-1 text-zinc-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-500">
+                            <span class="material-symbols-outlined text-xl">delete</span>
+                        </a>
+                    </div>
+                    <div class="mt-auto flex items-center justify-between pt-2">
+                        <p class="text-base font-bold leading-normal text-zinc-900 dark:text-white">${{
+                            "%.2f"|format(item.product.price) }}</p>
+                        <div class="flex items-center gap-2 text-zinc-900 dark:text-white">
+                            <span class="text-sm text-zinc-500 dark:text-zinc-400">Qty: {{ item.quantity }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             {% endfor %}
         </div>
 
-        <div class="cart-footer">
-            <div class="cart-total">
-                <span>Total:</span>
-                <span>${{ "%.2f"|format(total) }}</span>
+        <!-- Order Summary -->
+        <div class="h-fit w-full lg:w-96 lg:sticky lg:top-24">
+            <!-- Discount Code -->
+            {% if coupon_code %}
+            <div
+                class="mb-6 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-green-600 dark:text-green-400">check_circle</span>
+                        <div>
+                            <p class="text-sm font-semibold text-green-800 dark:text-green-300">Coupon Applied: {{
+                                coupon_code }}</p>
+                            <p class="text-xs text-green-600 dark:text-green-400">20% discount activated</p>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('remove_coupon') }}"
+                        class="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 underline">Remove</a>
+                </div>
             </div>
-            <form action="{{ url_for('checkout') }}" method="post">
-                <button type="submit" class="checkout-btn">Checkout</button>
+            {% else %}
+            <form action="{{ url_for('apply_coupon') }}" method="POST" class="mb-6 flex flex-wrap items-end gap-2">
+                <label class="flex min-w-40 flex-1 flex-col">
+                    <p class="pb-2 text-sm font-medium leading-normal text-zinc-800 dark:text-white">Discount Code</p>
+                    <input name="coupon_code"
+                        class="flex h-12 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl border border-zinc-300 bg-white p-[15px] text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-white dark:placeholder:text-zinc-500"
+                        placeholder="Enter SAVE20 for 20% off" />
+                </label>
+                <button type="submit"
+                    class="flex h-12 shrink-0 items-center justify-center rounded-xl bg-primary hover:bg-primary/90 px-6 text-base font-semibold text-zinc-900 transition-colors">Apply</button>
             </form>
+            {% endif %}
+
+            <div class="rounded-xl bg-white p-4 shadow-sm dark:bg-zinc-900/50">
+                <div class="flex justify-between gap-x-6 border-b border-zinc-200 py-2 dark:border-zinc-800">
+                    <p class="text-base font-normal leading-normal text-zinc-500 dark:text-zinc-400">Subtotal</p>
+                    <p class="text-right text-base font-medium leading-normal text-zinc-900 dark:text-white">${{
+                        "%.2f"|format(subtotal) }}</p>
+                </div>
+                {% if discount > 0 %}
+                <div class="flex justify-between gap-x-6 border-b border-zinc-200 py-2 dark:border-zinc-800">
+                    <p class="text-base font-normal leading-normal text-green-600 dark:text-green-400">Discount (20%)
+                    </p>
+                    <p class="text-right text-base font-semibold leading-normal text-green-600 dark:text-green-400">-${{
+                        "%.2f"|format(discount) }}</p>
+                </div>
+                {% endif %}
+                <div class="flex justify-between gap-x-6 py-2 border-b border-zinc-200 dark:border-zinc-800">
+                    <p class="text-base font-normal leading-normal text-zinc-500 dark:text-zinc-400">Shipping</p>
+                    <p class="text-right text-base font-medium leading-normal text-zinc-900 dark:text-white">Free</p>
+                </div>
+                <div class="mt-2 flex justify-between gap-x-6 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+                    <p class="text-lg font-bold leading-normal text-zinc-900 dark:text-white">Total</p>
+                    <p class="text-right text-lg font-bold leading-normal text-zinc-900 dark:text-white">${{
+                        "%.2f"|format(total) }}</p>
+                </div>
+
+                <!-- Desktop Checkout Button -->
+                <form action="{{ url_for('checkout') }}\" method="GET" class="mt-6 hidden md:block">
+                    <button type="submit"
+                        class="flex h-12 w-full items-center justify-center rounded-xl bg-primary px-6 text-base font-bold text-zinc-900 transition-transform hover:scale-105">
+                        Proceed to Checkout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Sticky Footer -->
+    <div
+        class="fixed bottom-0 left-0 right-0 z-10 border-t border-zinc-200 bg-white/80 p-4 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/80 md:hidden">
+        <div class="flex flex-col items-center gap-2">
+            <form action="{{ url_for('checkout') }}" method="GET" class="w-full">
+                <button type="submit"
+                    class="flex h-14 w-full items-center justify-center rounded-full bg-primary px-6 text-lg font-bold text-zinc-900">
+                    Proceed to Checkout
+                </button>
+            </form>
+            <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                <span class="material-symbols-outlined text-sm">lock</span>
+                <span>Secure Payment</span>
+            </div>
         </div>
     </div>
     {% else %}
-    <div style="text-align: center; padding: 4rem; background: white; border-radius: 1rem;">
-        <p class="empty-cart-msg">Your cart is empty.</p>
-        <a href="{{ url_for('index') }}" class="checkout-btn"
-            style="display: inline-block; width: auto; margin-top: 1rem; text-decoration: none;">Start Shopping</a>
+    <div class="flex flex-col items-center justify-center py-20 text-center">
+        <span class="material-symbols-outlined mb-4 text-6xl text-zinc-300 dark:text-zinc-700">shopping_cart_off</span>
+        <h2 class="text-xl font-bold text-zinc-900 dark:text-white">Your cart is empty</h2>
+        <p class="mt-2 text-zinc-500 dark:text-zinc-400">Looks like you haven't added anything yet.</p>
+        <a href="{{ url_for('index') }}"
+            class="mt-8 rounded-full bg-primary px-8 py-3 font-bold text-zinc-900 hover:bg-primary/90">Start
+            Shopping</a>
     </div>
     {% endif %}
 </div>

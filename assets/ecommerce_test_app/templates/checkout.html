@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 pb-32 md:pb-8">
+    <div class="flex items-center gap-2 mb-8">
+        <a href="{{ url_for('cart') }}" class="flex items-center gap-2 text-zinc-900 dark:text-white hover:opacity-80">
+            <span class="material-symbols-outlined text-2xl">arrow_back</span>
+            <h1 class="text-xl font-bold">Checkout</h1>
+        </a>
+    </div>
+
+    <div class="flex flex-col gap-8 lg:flex-row lg:gap-12">
+        <!-- Left Column: Checkout Steps -->
+        <div class="w-full lg:w-3/5 space-y-8">
+            <!-- Stepper -->
+            <div class="flex w-full flex-row items-center justify-between gap-2 px-2">
+                <div class="flex flex-col items-center flex-1 gap-2">
+                    <div
+                        class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-zinc-900 font-bold text-sm">
+                        1</div>
+                    <p class="text-sm font-semibold text-zinc-900 dark:text-white">Shipping</p>
+                </div>
+                <div class="flex-1 h-0.5 bg-zinc-300 dark:bg-zinc-700"></div>
+                <div class="flex flex-col items-center flex-1 gap-2">
+                    <div
+                        class="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 dark:text-zinc-400 font-bold text-sm">
+                        2</div>
+                    <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Payment</p>
+                </div>
+                <div class="flex-1 h-0.5 bg-zinc-300 dark:bg-zinc-700"></div>
+                <div class="flex flex-col items-center flex-1 gap-2">
+                    <div
+                        class="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 dark:text-zinc-400 font-bold text-sm">
+                        3</div>
+                    <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Review</p>
+                </div>
+            </div>
+
+            <form action="{{ url_for('checkout') }}" method="POST" id="checkout-form">
+                <!-- Shipping Address -->
+                <div class="space-y-4">
+                    <h2
+                        class="text-zinc-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pt-5">
+                        1. Shipping Address</h2>
+                    <div class="flex max-w-full flex-wrap items-end gap-4">
+                        <label class="flex flex-col min-w-40 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">Full
+                                Name</p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="Enter your full name" value="John Doe" />
+                        </label>
+                    </div>
+                    <div class="flex max-w-full flex-wrap items-end gap-4">
+                        <label class="flex flex-col min-w-40 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">Street
+                                Address</p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="Enter your street address" value="123 Innovation Drive" />
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <label class="flex flex-col min-w-0 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">City</p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="City" value="Techville" />
+                        </label>
+                        <label class="flex flex-col min-w-0 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">State
+                            </p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="State" value="CA" />
+                        </label>
+                        <label class="flex flex-col min-w-0 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">ZIP Code
+                            </p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="ZIP Code" value="94043" />
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Shipping Method -->
+                <div class="space-y-4 mt-8">
+                    <h2
+                        class="text-zinc-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pt-5">
+                        2. Shipping Method</h2>
+                    <div class="space-y-3">
+                        <label
+                            class="flex w-full cursor-pointer items-center justify-between gap-4 rounded-lg border border-primary bg-primary/10 p-4">
+                            <div class="flex items-center gap-4">
+                                <input checked="" class="h-5 w-5 border-zinc-300 text-primary focus:ring-primary"
+                                    name="shipping-method" type="radio" />
+                                <div>
+                                    <p class="font-semibold text-zinc-900 dark:text-white">Standard Shipping</p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">4-6 business days</p>
+                                </div>
+                            </div>
+                            <p class="font-semibold text-zinc-900 dark:text-white">$5.00</p>
+                        </label>
+                        <label
+                            class="flex w-full cursor-pointer items-center justify-between gap-4 rounded-lg border border-zinc-300 dark:border-zinc-700 p-4">
+                            <div class="flex items-center gap-4">
+                                <input class="h-5 w-5 border-zinc-300 text-primary focus:ring-primary"
+                                    name="shipping-method" type="radio" />
+                                <div>
+                                    <p class="font-semibold text-zinc-900 dark:text-white">Express Shipping</p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">1-2 business days</p>
+                                </div>
+                            </div>
+                            <p class="font-semibold text-zinc-900 dark:text-white">$15.00</p>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="pt-8">
+                    <button type="submit"
+                        class="flex w-full items-center justify-center rounded-lg bg-primary h-12 px-6 text-base font-bold text-zinc-900 transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark">
+                        Place Order
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Column: Order Summary -->
+        <div class="w-full lg:w-2/5 lg:sticky lg:top-24 h-fit">
+            <div
+                class="border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 rounded-xl p-6 space-y-4">
+                <h3 class="text-xl font-bold text-zinc-900 dark:text-white">Order Summary</h3>
+                <div class="space-y-4">
+                    {% for item in items %}
+                    <div class="flex items-center gap-4">
+                        <img class="h-20 w-20 rounded-lg object-cover" src="{{ item.product.image_url }}"
+                            alt="{{ item.product.name }}">
+                        <div class="flex-1">
+                            <p class="font-semibold text-zinc-900 dark:text-white">{{ item.product.name }}</p>
+                            <p class="text-sm text-zinc-500 dark:text-zinc-400">Qty: {{ item.quantity }}</p>
+                        </div>
+                        <p class="font-semibold text-zinc-900 dark:text-white">${{ "%.2f"|format(item.product.price *
+                            item.quantity) }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="border-t border-zinc-200 dark:border-zinc-700 pt-4 space-y-2">
+                    <div class="flex justify-between text-sm text-zinc-600 dark:text-zinc-300">
+                        <span>Subtotal</span>
+                        <span>${{ "%.2f"|format(total) }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-zinc-600 dark:text-zinc-300">
+                        <span>Shipping</span>
+                        <span>$5.00</span>
+                    </div>
+                </div>
+                <div class="border-t border-zinc-200 dark:border-zinc-700 pt-4">
+                    <div class="flex justify-between font-bold text-lg text-zinc-900 dark:text-white">
+                        <span>Total</span>
+                        <span>${{ "%.2f"|format(total + 5) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

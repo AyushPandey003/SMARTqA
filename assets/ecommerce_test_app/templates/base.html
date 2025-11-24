@@ -1,63 +1,256 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartQA Shop</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>{% block title %}SmartQA Shop{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13c8ec",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
 </head>
 
-<body>
-    <header>
-        <div class="container header-content">
-            <a href="{{ url_for('index') }}" class="logo" style="text-decoration: none;">
-                <i class="fas fa-cube"></i>
-                <h1>SmartQA Shop</h1>
-            </a>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                {% if current_user.is_authenticated %}
-                <span>Welcome, {{ current_user.username }}</span>
-                <a href="{{ url_for('cart') }}" class="cart-btn" style="text-decoration: none;">
-                    <i class="fas fa-shopping-cart"></i>
-                    {% set count = current_user.cart_items.count() %}
-                    <span class="cart-count">{{ count }}</span>
-                </a>
-                <a href="{{ url_for('logout') }}"
-                    style="color: var(--text-secondary); text-decoration: none;">Logout</a>
-                {% else %}
-                <a href="{{ url_for('login') }}"
-                    style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Login</a>
-                <a href="{{ url_for('register') }}"
-                    style="color: var(--text-secondary); text-decoration: none;">Register</a>
-                {% endif %}
+<body class="bg-background-light dark:bg-background-dark font-display text-zinc-900 dark:text-white">
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+        <!-- Top App Bar -->
+        <header
+            class="sticky top-0 z-50 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800">
+            <div class="container mx-auto flex h-20 items-center justify-between px-4">
+                <div class="flex items-center gap-2">
+                    <a href="{{ url_for('index') }}" class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-3xl text-zinc-900 dark:text-white">storefront</span>
+                        <h1 class="text-2xl font-bold text-zinc-900 dark:text-white">SmartQA Shop</h1>
+                    </a>
+                </div>
+                <nav class="hidden items-center gap-8 md:flex">
+                    <a class="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-primary dark:hover:text-primary transition-colors"
+                        href="{{ url_for('index') }}">Home</a>
+                    <a class="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-primary dark:hover:text-primary transition-colors"
+                        href="{{ url_for('index') }}">Shop</a>
+                    {% if current_user.is_authenticated %}
+                    <a class="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-primary dark:hover:text-primary transition-colors"
+                        href="{{ url_for('orders') }}">My Orders</a>
+                    <a class="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-primary dark:hover:text-primary transition-colors"
+                        href="{{ url_for('logout') }}">Logout</a>
+                    {% else %}
+                    <a class="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-primary dark:hover:text-primary transition-colors"
+                        href="{{ url_for('login') }}">Login</a>
+                    {% endif %}
+                </nav>
+                <div class="flex items-center gap-4">
+                    <!-- Dark Mode Toggle -->
+                    <button id="theme-toggle"
+                        class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
+                        <span class="material-symbols-outlined dark:hidden">dark_mode</span>
+                        <span class="material-symbols-outlined hidden dark:inline">light_mode</span>
+                    </button>
+
+                    <!-- Search Toggle Button (Mobile) -->
+                    <button id="search-toggle"
+                        class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors md:hidden">
+                        <span class="material-symbols-outlined">search</span>
+                    </button>
+
+                    <!-- Search Form (Desktop) -->
+                    <form action="{{ url_for('index') }}" method="GET" class="hidden md:flex items-center gap-2">
+                        <div class="relative">
+                            <input type="text" name="search" placeholder="Search products..."
+                                value="{{ search_query or '' }}"
+                                class="w-64 h-10 pl-10 pr-4 rounded-full border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                            <span
+                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-xl">search</span>
+                        </div>
+                    </form>
+
+                    <a href="{{ url_for('cart') }}"
+                        class="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
+                        <span class="material-symbols-outlined">shopping_bag</span>
+                        {% if current_user.is_authenticated %}
+                        {% set count = current_user.cart_items.count() %}
+                        {% if count > 0 %}
+                        <div
+                            class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-zinc-900">
+                            {{ count }}
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </a>
+                    <a href="{% if current_user.is_authenticated %}{{ url_for('profile') }}{% else %}{{ url_for('login') }}{% endif %}"
+                        class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
+                        <span class="material-symbols-outlined">person</span>
+                    </a>
+                </div>
             </div>
-        </div>
-    </header>
 
-    <main class="container">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div style="margin: 1rem 0; padding: 1rem; background-color: #e0e7ff; color: #3730a3; border-radius: 0.5rem;">
-            {% for message in messages %}
-            <p>{{ message }}</p>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
+            <!-- Mobile Search Bar (Hidden by default) -->
+            <div id="mobile-search" class="hidden border-t border-zinc-200 dark:border-zinc-800 md:hidden">
+                <form action="{{ url_for('index') }}" method="GET" class="container mx-auto px-4 py-3">
+                    <div class="relative">
+                        <input type="text" name="search" placeholder="Search products..."
+                            value="{{ search_query or '' }}"
+                            class="w-full h-10 pl-10 pr-4 rounded-full border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-xl">search</span>
+                    </div>
+                </form>
+            </div>
+        </header>
 
-        {% block content %}{% endblock %}
-    </main>
+        <main class="flex-1">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="container mx-auto p-4">
+                {% for message in messages %}
+                <div
+                    class="mb-4 p-4 bg-primary/10 text-primary border border-primary/20 rounded-xl flex items-center gap-2">
+                    <span class="material-symbols-outlined">info</span>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 SmartQA Test Shop. Built for testing.</p>
-        </div>
-    </footer>
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-zinc-200 dark:bg-zinc-900/50">
+            <div class="container mx-auto grid grid-cols-2 gap-8 px-4 py-16 md:grid-cols-4">
+                <div>
+                    <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Shop</h3>
+                    <ul class="mt-4 space-y-3">
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="{{ url_for('index') }}">New Arrivals</a></li>
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="{{ url_for('index') }}">All Products</a></li>
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="{{ url_for('index') }}">Categories</a></li>
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="{{ url_for('index') }}">Sale</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Account</h3>
+                    <ul class="mt-4 space-y-3">
+                        {% if current_user.is_authenticated %}
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="{{ url_for('orders') }}">My Orders</a></li>
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="{{ url_for('cart') }}">Shopping Cart</a></li>
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="{{ url_for('logout') }}">Logout</a></li>
+                        {% else %}
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="{{ url_for('login') }}">Login</a></li>
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="{{ url_for('register') }}">Register</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Support</h3>
+                    <ul class="mt-4 space-y-3">
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="#">Contact Us</a></li>
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="#">FAQ</a></li>
+                        <li><a class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                                href="#">Shipping &amp; Returns</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-zinc-900 dark:text-white">Stay Connected</h3>
+                    <p class="mt-4 text-sm text-zinc-600 dark:text-zinc-400">Join our newsletter for 10% off your first
+                        order.</p>
+                    <div class="mt-4 flex">
+                        <input
+                            class="w-full rounded-l-md border-zinc-300 bg-background-light dark:border-zinc-700 dark:bg-background-dark focus:border-primary focus:ring-primary text-sm"
+                            placeholder="Enter your email" type="email" />
+                        <button
+                            class="rounded-r-md bg-primary px-4 text-zinc-900 font-semibold hover:bg-primary/90">Sign
+                            Up</button>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-zinc-300 dark:border-zinc-800">
+                <div class="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row">
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">© 2024 SmartQA Shop. All rights reserved.</p>
+                    <div class="flex gap-4">
+                        <a class="text-zinc-500 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                            href="#">Terms</a>
+                        <a class="text-zinc-500 dark:text-zinc-400 hover:text-primary dark:hover:text-primary"
+                            href="#">Privacy</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Dark Mode Toggle Script -->
+    <script>
+        // Check for saved theme preference or default to 'light'
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(currentTheme);
+
+        // Toggle theme
+        document.getElementById('theme-toggle').addEventListener('click', function () {
+            const html = document.documentElement;
+            const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            html.classList.remove(currentTheme);
+            html.classList.add(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Mobile search toggle
+        const searchToggle = document.getElementById('search-toggle');
+        const mobileSearch = document.getElementById('mobile-search');
+
+        if (searchToggle && mobileSearch) {
+            searchToggle.addEventListener('click', function () {
+                mobileSearch.classList.toggle('hidden');
+                if (!mobileSearch.classList.contains('hidden')) {
+                    mobileSearch.querySelector('input').focus();
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

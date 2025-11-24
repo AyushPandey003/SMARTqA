@@ -6,8 +6,23 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 @app.route('/')
 def index():
-    products = Product.query.all()
-    return render_template('index.html', products=products)
+    search_query = request.args.get('search', '')
+    category = request.args.get('category', '')
+    
+    query = Product.query
+    
+    if search_query:
+        query = query.filter(
+            (Product.name.ilike(f'%{search_query}%')) | 
+            (Product.category.ilike(f'%{search_query}%')) |
+            (Product.description.ilike(f'%{search_query}%'))
+        )
+    
+    if category:
+        query = query.filter(Product.category == category)
+    
+    products = query.all()
+    return render_template('index.html', products=products, search_query=search_query, category=category)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -64,8 +79,38 @@ def add_to_cart(product_id):
 @login_required
 def cart():
     items = current_user.cart_items.all()
-    total = sum(item.product.price * item.quantity for item in items)
-    return render_template('cart.html', items=items, total=total)
+    subtotal = sum(item.product.price * item.quantity for item in items)
+    
+    # Get coupon from session
+    coupon_code = request.cookies.get('coupon_code', '')
+    discount = 0
+    if coupon_code == 'SAVE20':
+        discount = subtotal * 0.20
+    
+    total = subtotal - discount
+    return render_template('cart.html', items=items, subtotal=subtotal, discount=discount, total=total, coupon_code=coupon_code)
+
+@app.route('/apply_coupon', methods=['POST'])
+@login_required
+def apply_coupon():
+    coupon_code = request.form.get('coupon_code', '').strip().upper()
+    
+    if coupon_code == 'SAVE20':
+        flash('Coupon code applied! 20% discount activated.')
+        response = redirect(url_for('cart'))
+        response.set_cookie('coupon_code', coupon_code, max_age=3600)
+        return response
+    else:
+        flash('Invalid coupon code')
+        return redirect(url_for('cart'))
+
+@app.route('/remove_coupon')
+@login_required
+def remove_coupon():
+    response = redirect(url_for('cart'))
+    response.set_cookie('coupon_code', '', max_age=0)
+    flash('Coupon code removed')
+    return response
 
 @app.route('/remove_from_cart/<int:item_id>')
 @login_required
@@ -76,6 +121,21 @@ def remove_from_cart(item_id):
         db.session.commit()
     return redirect(url_for('cart'))
 
+@app.route('/checkout', methods=['GET'])
+@login_required
+def checkout_page():
+    items = current_user.cart_items.all()
+    subtotal = sum(item.product.price * item.quantity for item in items)
+    
+    # Get coupon from session
+    coupon_code = request.cookies.get('coupon_code', '')
+    discount = 0
+    if coupon_code == 'SAVE20':
+        discount = subtotal * 0.20
+    
+    total = subtotal - discount
+    return render_template('checkout.html', items=items, subtotal=subtotal, discount=discount, total=total, coupon_code=coupon_code)
+
 @app.route('/checkout', methods=['POST'])
 @login_required
 def checkout():
@@ -83,27 +143,98 @@ def checkout():
     if not items:
         flash('Cart is empty')
         return redirect(url_for('index'))
-        
-    total = sum(item.product.price * item.quantity for item in items)
-    order = Order(user_id=current_user.id, total_price=total, status='Completed')
+    
+    subtotal = sum(item.product.price * item.quantity for item in items)
+    
+    # Get coupon from session
+    coupon_code = request.cookies.get('coupon_code', '')
+    discount = 0
+    if coupon_code == 'SAVE20':
+        discount = subtotal * 0.20
+    
+    total = subtotal - discount
+    
+    order = Order(
+        user_id=current_user.id, 
+        total_price=total,
+        discount_amount=discount,
+        coupon_code=coupon_code if coupon_code else None,
+        status='Completed'
+    )
     db.session.add(order)
     
     for item in items:
         db.session.delete(item)
     
     db.session.commit()
+    
+    # Clear coupon after order
     flash('Order placed successfully!')
-    return redirect(url_for('index'))
+    response = redirect(url_for('index'))
+    response.set_cookie('coupon_code', '', max_age=0)
+    return response
+
+@app.route('/product/<int:product_id>')
+def product_detail(product_id):
+    product = Product.query.get_or_404(product_id)
+    return render_template('product_detail.html', product=product)
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)
+
+@app.route('/orders')
+@login_required
+def orders():
+    orders = current_user.orders.all()
+    return render_template('orders.html', orders=orders)
 
 def seed_products():
     products = [
-        {"name": "Wireless Headphones", "price": 99.99, "icon": "fa-headphones", "description": "High quality wireless sound."},
-        {"name": "Smart Watch", "price": 149.50, "icon": "fa-clock", "description": "Track your fitness and time."},
-        {"name": "Mechanical Keyboard", "price": 120.00, "icon": "fa-keyboard", "description": "Clicky and tactile."},
-        {"name": "Gaming Mouse", "price": 59.99, "icon": "fa-mouse", "description": "Precision gaming."},
-        {"name": "4K Monitor", "price": 299.99, "icon": "fa-desktop", "description": "Crystal clear display."},
-        {"name": "USB-C Hub", "price": 35.00, "icon": "fa-usb", "description": "Connect everything."}
-    ]
+  {
+    "name": "Classic White Tee",
+    "price": 25.00,
+    "category": "T-Shirts",
+    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/T-Shirt_Wikipedia_white.jpg",
+    "description": "A classic white t-shirt for everyday wear."
+  },
+  {
+    "name": "Denim Jeans",
+    "price": 79.99,
+    "category": "Jeans",
+    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Blue_jeans_-_detail_06.jpg",
+    "description": "Classic blue denim jeans with a perfect fit."
+  },
+  {
+    "name": "Leather Jacket",
+    "price": 149.50,
+    "category": "Jackets",
+    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Black_worn_leather_jacket.jpg",
+    "description": "Stylish black leather jacket for any occasion."
+  },
+  {
+    "name": "Running Sneakers",
+    "price": 120.00,
+    "category": "Shoes",
+    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Running_shoes_display.JPG",
+    "description": "Comfortable running sneakers with great support."
+  },
+  {
+    "name": "Stylish Sunglasses",
+    "price": 45.00,
+    "category": "Accessories",
+    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Leo_XI_2_Sunglasses.png",
+    "description": "Modern sunglasses for sunny days."
+  },
+  {
+    "name": "Canvas Backpack",
+    "price": 60.00,
+    "category": "Accessories",
+    "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Backpack-1.jpg",
+    "description": "Durable canvas backpack for daily use."
+  }
+]
     for p_data in products:
         p = Product(**p_data)
         db.session.add(p)
