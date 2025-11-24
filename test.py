@@ -1,3 +1,14 @@
+import os
+import pathlib
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+
+# Target HTML content to be tested
+HTML_CONTENT = """
 <!DOCTYPE html>
 <html lang="en">
 
@@ -290,3 +301,147 @@
 </body>
 
 </html>
+"""
+
+# Define locators for easier maintenance
+DISCOUNT_CODE_INPUT = (By.ID, "discount-code")
+APPLY_BUTTON = (By.XPATH, "//button[text()='Apply']")
+DISCOUNT_MSG = (By.ID, "discount-msg")
+SUBTOTAL_SPAN = (By.ID, "subtotal")
+TOTAL_SPAN = (By.ID, "total")
+ADD_HEADPHONES_BUTTON = (By.XPATH, "//span[contains(text(), 'Wireless Headphones')]/following-sibling::button")
+PAGE_HEADER = (By.TAG_NAME, "h1")
+
+def run_tests():
+    """Main function to set up the driver and run all test cases."""
+    # Create a temporary HTML file to be loaded by the browser
+    file_path = os.path.abspath("checkout.html")
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(HTML_CONTENT)
+    
+    # Get the file URI for cross-platform compatibility
+    file_uri = pathlib.Path(file_path).as_uri()
+
+    # Initialize the Chrome WebDriver
+    driver = webdriver.Chrome()
+    wait = WebDriverWait(driver, 10)
+
+    try:
+        # --- Test Execution ---
+        
+        # DC-001: Verify the presence of discount code elements
+        print("--- Running Test DC-001: Verify presence of discount code elements ---")
+        driver.get(file_uri)
+        wait.until(EC.presence_of_element_located(DISCOUNT_CODE_INPUT))
+        wait.until(EC.presence_of_element_located(APPLY_BUTTON))
+        print("PASS: Discount code input and Apply button are present.")
+
+        # DC-002: Verify interaction happens without a page reload
+        print("\n--- Running Test DC-002: Verify interaction without page reload ---")
+        header_element = wait.until(EC.presence_of_element_located(PAGE_HEADER))
+        driver.find_element(*DISCOUNT_CODE_INPUT).send_keys("TEST")
+        driver.find_element(*APPLY_BUTTON).click()
+        wait.until(EC.visibility_of_element_located(DISCOUNT_MSG))
+        try:
+            # Accessing the header element again. If it throws StaleElementReferenceException, the page reloaded.
+            header_text = header_element.text
+            assert header_text == "E-Shop Checkout"
+            print("PASS: Feedback appeared without a full page reload.")
+        except StaleElementReferenceException:
+            raise AssertionError("Page reloaded after applying discount code.")
+
+        # DC-003: Apply a valid discount code and verify total is reduced
+        print("\n--- Running Test DC-003: Apply a valid discount code ---")
+        driver.get(file_uri) # Reset state for a clean test
+        # Add an item to the cart
+        wait.until(EC.element_to_be_clickable(ADD_HEADPHONES_BUTTON)).click()
+        # Wait for subtotal and total to update
+        wait.until(EC.text_to_be_present_in_element(SUBTOTAL_SPAN, "100"))
+        wait.until(EC.text_to_be_present_in_element(TOTAL_SPAN, "100.00"))
+        initial_total = float(driver.find_element(*TOTAL_SPAN).text)
+        
+        # Apply valid discount code
+        driver.find_element(*DISCOUNT_CODE_INPUT).send_keys("SAVE15")
+        driver.find_element(*APPLY_BUTTON).click()
+        
+        # Wait for success message and total to update
+        wait.until(EC.text_to_be_present_in_element(DISCOUNT_MSG, "15% Discount Applied!"))
+        wait.until(EC.text_to_be_present_in_element(TOTAL_SPAN, "85.00"))
+        final_total = float(driver.find_element(*TOTAL_SPAN).text)
+        
+        assert final_total < initial_total, f"Final total {final_total} was not less than initial total {initial_total}"
+        assert final_total == 85.00, f"Final total was {final_total}, expected 85.00"
+        print("PASS: Valid discount code applied, success message shown, and total was reduced correctly.")
+
+        # DC-004: Verify the styling of the success message
+        print("\n--- Running Test DC-004: Verify success message styling ---")
+        success_msg_element = driver.find_element(*DISCOUNT_MSG)
+        msg_color = success_msg_element.value_of_css_property("color")
+        msg_font_weight = success_msg_element.value_of_css_property("font-weight")
+        
+        assert "green" in msg_color or "rgb(0, 128, 0)" in msg_color, f"Color was {msg_color}, expected green."
+        assert msg_font_weight == "700" or msg_font_weight == "bold", f"Font weight was {msg_font_weight}, expected bold/700."
+        print(f"PASS: Success message is green (color: {msg_color}) and bold (font-weight: {msg_font_weight}).")
+
+        # DC-005: Attempt to apply an invalid discount code
+        print("\n--- Running Test DC-005: Apply an invalid discount code ---")
+        driver.get(file_uri) # Reset state
+        wait.until(EC.element_to_be_clickable(ADD_HEADPHONES_BUTTON)).click()
+        wait.until(EC.text_to_be_present_in_element(TOTAL_SPAN, "100.00"))
+        initial_total = float(driver.find_element(*TOTAL_SPAN).text)
+
+        # Apply invalid code
+        driver.find_element(*DISCOUNT_CODE_INPUT).send_keys("INVALIDCODE")
+        driver.find_element(*APPLY_BUTTON).click()
+
+        # Wait for error message
+        wait.until(EC.text_to_be_present_in_element(DISCOUNT_MSG, "Invalid Code"))
+        final_total = float(driver.find_element(*TOTAL_SPAN).text)
+
+        assert initial_total == final_total, f"Total changed from {initial_total} to {final_total}."
+        print("PASS: Invalid code showed an error message and the total remained unchanged.")
+
+        # DC-006: Verify the styling of the error message
+        print("\n--- Running Test DC-006: Verify error message styling ---")
+        error_msg_element = driver.find_element(*DISCOUNT_MSG)
+        msg_color = error_msg_element.value_of_css_property("color")
+        
+        assert "red" in msg_color or "rgb(255, 0, 0)" in msg_color, f"Color was {msg_color}, expected red."
+        print(f"PASS: Error message is red (color: {msg_color}).")
+
+        # DC-007: Click 'Apply' with an empty discount code field
+        print("\n--- Running Test DC-007: Apply with empty field ---")
+        driver.get(file_uri) # Reset state
+        wait.until(EC.element_to_be_clickable(ADD_HEADPHONES_BUTTON)).click()
+        wait.until(EC.text_to_be_present_in_element(TOTAL_SPAN, "100.00"))
+        initial_total = float(driver.find_element(*TOTAL_SPAN).text)
+
+        # Clear the input field and click apply
+        discount_input = driver.find_element(*DISCOUNT_CODE_INPUT)
+        discount_input.clear()
+        driver.find_element(*APPLY_BUTTON).click()
+
+        # Wait for error message. The provided JS shows "Invalid Code" for an empty field.
+        wait.until(EC.text_to_be_present_in_element(DISCOUNT_MSG, "Invalid Code"))
+        final_total = float(driver.find_element(*TOTAL_SPAN).text)
+
+        assert initial_total == final_total, f"Total changed from {initial_total} to {final_total} on empty apply."
+        print("PASS: Applying with an empty field showed an error and the total remained unchanged.")
+
+    except TimeoutException as e:
+        print(f"\nFAIL: A timeout occurred. Element not found or condition not met in time. {e}")
+    except AssertionError as e:
+        print(f"\nFAIL: An assertion failed. {e}")
+    except Exception as e:
+        print(f"\nAn unexpected error occurred: {e}")
+    finally:
+        # Clean up: close the browser and delete the temporary file
+        if 'driver' in locals() and driver:
+            driver.quit()
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        print("\n--- Test execution finished. ---")
+
+
+if __name__ == "__main__":
+    run_tests()

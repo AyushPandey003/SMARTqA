@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartQA Shop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="{{ url_for('index') }}" class="logo" style="text-decoration: none;">
+                <i class="fas fa-cube"></i>
+                <h1>SmartQA Shop</h1>
+            </a>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                {% if current_user.is_authenticated %}
+                <span>Welcome, {{ current_user.username }}</span>
+                <a href="{{ url_for('cart') }}" class="cart-btn" style="text-decoration: none;">
+                    <i class="fas fa-shopping-cart"></i>
+                    {% set count = current_user.cart_items.count() %}
+                    <span class="cart-count">{{ count }}</span>
+                </a>
+                <a href="{{ url_for('logout') }}"
+                    style="color: var(--text-secondary); text-decoration: none;">Logout</a>
+                {% else %}
+                <a href="{{ url_for('login') }}"
+                    style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Login</a>
+                <a href="{{ url_for('register') }}"
+                    style="color: var(--text-secondary); text-decoration: none;">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div style="margin: 1rem 0; padding: 1rem; background-color: #e0e7ff; color: #3730a3; border-radius: 0.5rem;">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 SmartQA Test Shop. Built for testing.</p>
+        </div>
+    </footer>
+</body>
+
+</html>

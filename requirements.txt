@@ -16,3 +16,8 @@ watchdog
 langchain-text-splitters
 unstructured
 lxml
+Flask-Login
+email_validator
+pytest
+selenium
+webdriver-manager

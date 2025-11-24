@@ -61,7 +61,9 @@ def generate_selenium_script(llm, vector_db, test_case: str, html_content: str):
     3. Use precise selectors based on the provided HTML (IDs, Classes, Names).
     4. Include comments explaining the steps.
     5. Handle potential errors gracefully.
-    6. Output ONLY the Python code, no markdown formatting like ```python.
+    6. Do NOT use pytest, unittest, or classes. Generate a simple standalone script with a `if __name__ == "__main__":` block.
+    7. Ensure all imports are correct and necessary. Do NOT import built-in Python exceptions (like AssertionError) from selenium modules.
+    8. Output ONLY the Python code, no markdown formatting like ```python.
     """
     
     prompt = PromptTemplate.from_template(template)

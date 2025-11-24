@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 2rem auto;">
+    <h2 style="margin-bottom: 2rem;">Your Cart</h2>
+
+    {% if items %}
+    <div style="background: white; border-radius: 1rem; box-shadow: var(--shadow-sm); overflow: hidden;">
+        <div class="cart-items">
+            {% for item in items %}
+            <div class="cart-item" style="padding: 1.5rem;">
+                <div class="cart-item-info">
+                    <h4>{{ item.product.name }}</h4>
+                    <span class="cart-item-price">${{ "%.2f"|format(item.product.price) }} x {{ item.quantity }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-weight: 600;">${{ "%.2f"|format(item.product.price * item.quantity) }}</span>
+                    <a href="{{ url_for('remove_from_cart', item_id=item.id) }}" class="remove-btn">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span>${{ "%.2f"|format(total) }}</span>
+            </div>
+            <form action="{{ url_for('checkout') }}" method="post">
+                <button type="submit" class="checkout-btn">Checkout</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 4rem; background: white; border-radius: 1rem;">
+        <p class="empty-cart-msg">Your cart is empty.</p>
+        <a href="{{ url_for('index') }}" class="checkout-btn"
+            style="display: inline-block; width: auto; margin-top: 1rem; text-decoration: none;">Start Shopping</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

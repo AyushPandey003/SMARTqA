@@ -1,27 +1,55 @@
 {
-    "POST /apply_coupon": {
-        "description": "Validates and applies a coupon code",
-        "request": {
-            "code": "string"
-        },
-        "response": {
-            "success": "boolean",
-            "discount_amount": "number",
-            "message": "string"
-        }
+    "base_url": "http://127.0.0.1:5000",
+    "GET /": {
+        "description": "Home page listing all products.",
+        "response": "HTML page with product list"
     },
-    "POST /submit_order": {
-        "description": "Submits the final order",
+    "GET /login": {
+        "description": "Login page.",
+        "response": "HTML login form"
+    },
+    "POST /login": {
+        "description": "Authenticates a user.",
         "request": {
-            "name": "string",
-            "email": "string",
-            "address": "string",
-            "shipping_method": "string",
-            "payment_method": "string"
+            "username": "string",
+            "password": "string"
         },
-        "response": {
-            "success": "boolean",
-            "order_id": "string"
-        }
+        "response": "Redirect to index or login page with error"
+    },
+    "GET /register": {
+        "description": "Registration page.",
+        "response": "HTML registration form"
+    },
+    "POST /register": {
+        "description": "Registers a new user.",
+        "request": {
+            "username": "string",
+            "email": "string",
+            "password": "string"
+        },
+        "response": "Redirect to login page"
+    },
+    "GET /add_to_cart/<product_id>": {
+        "description": "Adds a product to the user's cart.",
+        "parameters": {
+            "product_id": "integer"
+        },
+        "response": "Redirect to index with flash message"
+    },
+    "GET /cart": {
+        "description": "Displays the user's cart.",
+        "response": "HTML page with cart items and total"
+    },
+    "GET /remove_from_cart/<item_id>": {
+        "description": "Removes an item from the cart.",
+        "parameters": {
+            "item_id": "integer"
+        },
+        "response": "Redirect to cart"
+    },
+    "POST /checkout": {
+        "description": "Places an order for all items in the cart.",
+        "request": {},
+        "response": "Redirect to index with success message"
     }
 }

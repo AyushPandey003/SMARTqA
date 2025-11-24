@@ -1,14 +1,24 @@
 # Product Specifications
 
-## Discount Codes
-- **SAVE15**: Applies a 15% discount to the total price.
-- **FREESHIP**: Applies free shipping (if express shipping is selected, it becomes free).
-- Invalid codes should show an error message "Invalid discount code".
+## Products
+The store offers the following products:
+- **Wireless Headphones**: $99.99
+- **Smart Watch**: $149.50
+- **Mechanical Keyboard**: $120.00
+- **Gaming Mouse**: $59.99
+- **4K Monitor**: $299.99
+- **USB-C Hub**: $35.00
 
-## Shipping
-- **Standard Shipping**: Free. Delivery in 5-7 business days.
-- **Express Shipping**: Costs $10.00. Delivery in 2-3 business days.
+## Cart & Checkout Logic
+- **Add to Cart**: Users can add items to their cart. If an item already exists, its quantity is increased.
+- **Cart Total**: Calculated as the sum of (Item Price * Quantity) for all items in the cart.
+- **Checkout**: 
+    - Users must be logged in to checkout.
+    - Clicking "Checkout" converts all cart items into an Order.
+    - The cart is cleared after a successful checkout.
+    - No payment information is currently collected (Mock checkout).
+    - No shipping information is currently collected.
 
-## Cart Logic
-- Minimum quantity for any item is 1.
-- Updating quantity updates the total price immediately.
+## User Accounts
+- Users must register with a username, email, and password.
+- Users must login to access the cart and checkout features.

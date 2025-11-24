@@ -1,13 +1,12 @@
-UI/UX Guidelines
+# UI/UX Guidelines
 
-1. Error Messages
-   - All form validation errors must be displayed in red text.
-   - Error messages should be inline, below the invalid field.
+## Color Palette
+- **Primary Button (Add to Cart)**: Blue (#007bff).
+- **Action Button (Pay Now)**: Green.
+- **Error Messages**: Red text.
+- **Success Messages**: Green text, bold.
 
-2. Buttons
-   - The "Pay Now" button should be green (#008000).
-   - Secondary buttons like "Update" or "Apply" should be default gray or styled neutrally.
-
-3. Success Feedback
-   - Upon successful payment, replace the form with a message "Payment Successful!" in green text.
-   - Discount code success message should be "Discount Applied!" in green.
+## Form Interaction
+- Validation errors should appear inline below the invalid field.
+- The "Pay Now" button should be disabled after a successful payment to prevent double submission.
+- Discount code feedback should be immediate (no page reload).
