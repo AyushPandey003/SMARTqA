@@ -235,32 +235,28 @@ graph LR
 - **Chrome Browser**: For Selenium execution
 
 ### Step-by-Step Setup
-
 ```bash
 # 1. Clone the repository
 git clone https://github.com/AyushPandey003/SMARTqA.git
 cd SMARTqA
 
-# 2. Install uv (if not already installed)
-# Check if uv is installed: uv --version
-# If not installed, run: pip install uv
+# 2. Create virtual environment
+python -m venv .venv
 
-# 3. Install dependencies with uv
-uv pip install -r requirements.txt
+# 3. Activate virtual environment
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
 
-# 4. Set up environment variables
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Set up environment variables
 set GOOGLE_API_KEY=your_api_key_here
 
-# 5. Run the application with uv
-uv run streamlit run src/app.py
-```
-
-### Configuration
-
-Create a `.env` file in the project root:
-
-```env
-GOOGLE_API_KEY=your_google_gemini_api_key
+# 6. Run the application
+streamlit run src/app.py
 ```
 
 ---
