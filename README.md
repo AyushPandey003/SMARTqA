@@ -230,6 +230,7 @@ graph LR
 
 ### Prerequisites
 - **Python**: 3.8 or higher
+- **uv**: Fast Python package installer ([Install uv](https://github.com/astral-sh/uv))
 - **Google API Key**: Gemini API access ([Get it here](https://makersuite.google.com/app/apikey))
 - **Chrome Browser**: For Selenium execution
 
@@ -240,23 +241,17 @@ graph LR
 git clone https://github.com/AyushPandey003/SMARTqA.git
 cd SMARTqA
 
-# 2. Create virtual environment
-python -m venv .venv
+# 2. Install uv (if not already installed)
+pip install uv
 
-# 3. Activate virtual environment
-# Windows:
-.venv\Scripts\activate
-# Linux/Mac:
-source .venv/bin/activate
+# 3. Install dependencies with uv
+uv pip install -r requirements.txt
 
-# 4. Install dependencies
-pip install -r requirements.txt
-
-# 5. Set up environment variables
+# 4. Set up environment variables
 set GOOGLE_API_KEY=your_api_key_here
 
-# 6. Run the application
-streamlit run src/app.py
+# 5. Run the application with uv
+uv run streamlit run src/app.py
 ```
 
 ### Configuration
@@ -296,7 +291,7 @@ flowchart TD
 ### Detailed Steps
 
 #### 1️⃣ **Build Knowledge Base**
-1. Launch the app: `streamlit run src/app.py`
+1. Launch the app: `uv run streamlit run src/app.py`
 2. In the sidebar, upload:
    - **Support Documents**: `product_specs.md`, `ui_ux_guide.txt`, `api_endpoints.json`
    - **Target HTML**: `checkout.html`
@@ -321,7 +316,7 @@ flowchart TD
 2. Paste the test case from Step 2 (or write your own)
 3. Click **"Generate Selenium Script"**
 4. Copy or download the Python script
-5. Run it: `python test_script.py`
+5. Run it: `uv run python test_script.py`
 
 ---
 
