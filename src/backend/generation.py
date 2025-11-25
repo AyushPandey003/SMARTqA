@@ -44,26 +44,122 @@ def generate_selenium_script(llm, vector_db, test_case: str, html_content: str):
     retriever = vector_db.as_retriever(search_kwargs={"k": 3})
     
     template = """You are an expert Selenium Python automation engineer.
-    Generate a robust, runnable Selenium script for the following test case.
+    Generate a robust, self-contained, runnable Selenium script for the following test case.
     
     Test Case:
     {test_case}
     
-    Target HTML Content:
+    HTML Reference (for element selectors only):
     {html_content}
     
     Relevant Documentation Context:
     {context}
     
-    Instructions:
-    1. Use `webdriver.Chrome()`.
-    2. Use explicit waits (`WebDriverWait`) for element interaction.
-    3. Use precise selectors based on the provided HTML (IDs, Classes, Names).
-    4. Include comments explaining the steps.
-    5. Handle potential errors gracefully.
-    6. Do NOT use pytest, unittest, or classes. Generate a simple standalone script with a `if __name__ == "__main__":` block.
-    7. Ensure all imports are correct and necessary. Do NOT import built-in Python exceptions (like AssertionError) from selenium modules.
-    8. Output ONLY the Python code, no markdown formatting like ```python.
+    CRITICAL INSTRUCTIONS - READ CAREFULLY:
+    
+    1. **ANALYZE TEST DEPENDENCIES FIRST** (MOST IMPORTANT):
+       - Does this test require a logged-in user? → YES: Create a function to register/setup test user BEFORE running the test
+       - Does it need data in cart/database? → YES: Create helper functions to set up that data
+       - Example: Testing cart features? You MUST create a user first and log them in!
+       - Example: Testing checkout? You MUST create user + add items to cart first!
+       - Think step-by-step about what needs to exist before your test can run
+    
+    2. **Test Against Running Flask App**: 
+       - Script MUST test against http://127.0.0.1:5000
+       - Define: base_url = "http://127.0.0.1:5000"
+    
+    3. **Do NOT Embed HTML**: 
+       - Use HTML reference ONLY to find element selectors (IDs, classes, names, text)
+       - Check the HTML carefully for EXACT button text, field names, etc.
+    
+    4. **Self-Contained & Intelligent**:
+       - Script should be runnable standalone with: python script.py
+       - Include ALL necessary setup (user creation, login, data preparation)
+       - No external dependencies on existing data
+    
+    5. **Use Explicit Waits**: 
+       - Use WebDriverWait with expected_conditions for ALL element interactions
+       - Example: WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "element_id")))
+    
+    6. **Accurate Selectors**:
+       - Examine the HTML carefully to find correct selectors
+       - Use exact text for buttons (e.g., "Sign In" not "Login" if that's what the HTML says)
+       - Prefer IDs over XPath when available
+    
+    7. **Error Handling**: 
+       - Include try-except blocks with descriptive messages
+       - Print which step failed for easier debugging
+    
+    8. **Test Reporting**: 
+       - Print clear PASS/FAIL messages
+       - Show what was tested and the result
+    
+    9. **Setup/Teardown**: 
+       - Initialize driver at start
+       - Use try-finally to ensure driver.quit() runs
+    
+    10. **Required Imports**:
+        from selenium import webdriver
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.common.exceptions import TimeoutException
+        import uuid  # For generating unique test data
+        import time  # For occasional sleeps if needed
+    
+    11. **No Test Frameworks**: 
+        - NO pytest, unittest, or test classes
+        - Use simple: if __name__ == "__main__": block
+    
+    12. **Output Format**: 
+        - Output ONLY Python code
+        - NO markdown formatting like ```python
+        - NO explanatory text, just code
+    
+    EXAMPLE STRUCTURE for Login-Dependent Tests:
+    ```
+    # Imports
+    import uuid
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    
+    BASE_URL = "http://127.0.0.1:5000"
+    
+    # Helper function to register user
+    def setup_test_user(driver):
+        # Try to login first to check if user exists
+        # If not, register the user
+        pass
+    
+    # Helper function to login
+    def login_user(driver, username, password):
+        driver.get(f"{{BASE_URL}}/login")
+        # Fill form and submit
+        pass
+    
+    # Main execution
+    if __name__ == "__main__":
+        driver = None
+        try:
+            driver = webdriver.Chrome()
+            
+            # STEP 1: Setup prerequisites
+            setup_test_user(driver)
+            
+            # STEP 2: Run the actual test
+            # ... test logic here ...
+            
+            print("PASS: Test completed successfully")
+        except Exception as e:
+            print(f"FAIL: {{e}}")
+        finally:
+            if driver:
+                driver.quit()
+    ```
+    
+    Now generate the complete, runnable script for the given test case.
     """
     
     prompt = PromptTemplate.from_template(template)
@@ -78,4 +174,6 @@ def generate_selenium_script(llm, vector_db, test_case: str, html_content: str):
         | StrOutputParser()
     )
     
-    return rag_chain.invoke(test_case)
+    result = rag_chain.invoke(test_case)
+    # Clean up markdown formatting if present
+    return result.replace("```python", "").replace("```", "").strip()

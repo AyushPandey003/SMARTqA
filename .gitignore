@@ -2,3 +2,4 @@ src/backend/__pycache__/
 .env
 **/__pycache__/
 faiss_db/
+faiss_db/index.pkl

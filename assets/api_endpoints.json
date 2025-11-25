@@ -1,55 +1,151 @@
 {
     "base_url": "http://127.0.0.1:5000",
-    "GET /": {
-        "description": "Home page listing all products.",
-        "response": "HTML page with product list"
-    },
-    "GET /login": {
-        "description": "Login page.",
-        "response": "HTML login form"
-    },
-    "POST /login": {
-        "description": "Authenticates a user.",
-        "request": {
-            "username": "string",
-            "password": "string"
+    "endpoints": {
+        "GET /": {
+            "description": "Home page listing all products with search and category filtering",
+            "query_parameters": {
+                "search": "string (optional) - Search query for product name, category, or description",
+                "category": "string (optional) - Filter by category (T-Shirts, Jeans, Jackets, Shoes, Accessories)"
+            },
+            "authentication": "Optional",
+            "response": "HTML page with product grid"
         },
-        "response": "Redirect to index or login page with error"
-    },
-    "GET /register": {
-        "description": "Registration page.",
-        "response": "HTML registration form"
-    },
-    "POST /register": {
-        "description": "Registers a new user.",
-        "request": {
-            "username": "string",
-            "email": "string",
-            "password": "string"
+        "GET /login": {
+            "description": "Login page",
+            "authentication": "None",
+            "response": "HTML login form"
         },
-        "response": "Redirect to login page"
-    },
-    "GET /add_to_cart/<product_id>": {
-        "description": "Adds a product to the user's cart.",
-        "parameters": {
-            "product_id": "integer"
+        "POST /login": {
+            "description": "Authenticates a user",
+            "authentication": "None",
+            "request_body": {
+                "username": "string (required)",
+                "password": "string (required)"
+            },
+            "response": "Redirect to index on success, or login page with flash error on failure"
         },
-        "response": "Redirect to index with flash message"
-    },
-    "GET /cart": {
-        "description": "Displays the user's cart.",
-        "response": "HTML page with cart items and total"
-    },
-    "GET /remove_from_cart/<item_id>": {
-        "description": "Removes an item from the cart.",
-        "parameters": {
-            "item_id": "integer"
+        "GET /register": {
+            "description": "Registration page",
+            "authentication": "None",
+            "response": "HTML registration form"
         },
-        "response": "Redirect to cart"
+        "POST /register": {
+            "description": "Registers a new user",
+            "authentication": "None",
+            "request_body": {
+                "username": "string (required)",
+                "email": "string (required)",
+                "password": "string (required)"
+            },
+            "response": "Redirect to login page on success, or register page with flash error if username exists"
+        },
+        "GET /logout": {
+            "description": "Logs out the current user",
+            "authentication": "Required",
+            "response": "Redirect to index"
+        },
+        "GET /add_to_cart/<product_id>": {
+            "description": "Adds a product to the user's cart (increments quantity if already exists)",
+            "authentication": "Required",
+            "parameters": {
+                "product_id": "integer (URL path)"
+            },
+            "response": "Redirect to index with flash message 'Item added to cart'"
+        },
+        "GET /cart": {
+            "description": "Displays the user's shopping cart with items, subtotal, discount, and total",
+            "authentication": "Required",
+            "response": "HTML page with cart items, coupon code display, and totals"
+        },
+        "POST /apply_coupon": {
+            "description": "Applies a coupon code to the cart (currently supports 'SAVE20' for 20% discount)",
+            "authentication": "Required",
+            "request_body": {
+                "coupon_code": "string (required) - Coupon code to apply"
+            },
+            "response": "Redirect to cart with flash message on success or error. Sets cookie 'coupon_code' with 1-hour expiration"
+        },
+        "GET /remove_coupon": {
+            "description": "Removes the applied coupon code from the cart",
+            "authentication": "Required",
+            "response": "Redirect to cart with flash message. Clears 'coupon_code' cookie"
+        },
+        "GET /remove_from_cart/<item_id>": {
+            "description": "Removes a specific item from the cart",
+            "authentication": "Required",
+            "parameters": {
+                "item_id": "integer (URL path) - CartItem ID"
+            },
+            "response": "Redirect to cart"
+        },
+        "GET /checkout": {
+            "description": "Displays the checkout page with shipping form and order summary",
+            "authentication": "Required",
+            "response": "HTML checkout page with shipping address form, shipping method selection, and order summary with discount"
+        },
+        "POST /checkout": {
+            "description": "Places an order for all items in the cart",
+            "authentication": "Required",
+            "request_body": {},
+            "process": [
+                "Calculates subtotal from cart items",
+                "Applies coupon discount if 'coupon_code' cookie is set to 'SAVE20'",
+                "Creates Order with total_price, discount_amount, and coupon_code",
+                "Deletes all cart items",
+                "Clears coupon_code cookie"
+            ],
+            "response": "Redirect to index with flash message 'Order placed successfully!' on success, or cart with error if cart is empty"
+        },
+        "GET /product/<product_id>": {
+            "description": "Displays detailed information about a specific product",
+            "authentication": "Optional",
+            "parameters": {
+                "product_id": "integer (URL path)"
+            },
+            "response": "HTML product detail page or 404 if product not found"
+        },
+        "GET /profile": {
+            "description": "Displays the user's profile information",
+            "authentication": "Required",
+            "response": "HTML profile page with user details"
+        },
+        "GET /orders": {
+            "description": "Displays the user's order history",
+            "authentication": "Required",
+            "response": "HTML page with list of all user orders including order details, totals, discounts, and coupon codes"
+        }
     },
-    "POST /checkout": {
-        "description": "Places an order for all items in the cart.",
-        "request": {},
-        "response": "Redirect to index with success message"
+    "notes": {
+        "coupon_codes": {
+            "SAVE20": "20% discount on cart subtotal, stored in cookies, expires after 1 hour"
+        },
+        "authentication": {
+            "method": "Flask-Login sessions",
+            "login_required_routes": [
+                "/add_to_cart/<product_id>",
+                "/cart",
+                "/apply_coupon",
+                "/remove_coupon",
+                "/remove_from_cart/<item_id>",
+                "/checkout (both GET and POST)",
+                "/profile",
+                "/orders"
+            ]
+        },
+        "flash_messages": {
+            "success": [
+                "Item added to cart",
+                "Coupon code applied! 20% discount activated.",
+                "Coupon code removed",
+                "Order placed successfully!",
+                "Congratulations, you are now a registered user!"
+            ],
+            "errors": [
+                "Invalid username or password",
+                "Username already exists",
+                "Invalid coupon code",
+                "Cart is empty"
+            ]
+        }
     }
 }

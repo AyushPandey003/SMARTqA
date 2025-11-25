@@ -1,292 +1,169 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Shop Checkout</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .container {
-            display: flex;
-            gap: 20px;
-        }
-
-        .products,
-        .checkout-form {
-            flex: 1;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .product {
-            border-bottom: 1px solid #eee;
-            padding: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .cart-summary {
-            margin-top: 20px;
-            border-top: 2px solid #333;
-            padding-top: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input[type="text"],
-        input[type="email"] {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-        }
-
-        .error {
-            color: red;
-            font-size: 0.9em;
-            display: none;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: none;
-            border-radius: 3px;
-        }
-
-        .btn-add {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .btn-pay {
-            background-color: green;
-            color: white;
-            width: 100%;
-            font-size: 1.1em;
-        }
-
-        .success-msg {
-            color: green;
-            font-weight: bold;
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .hidden {
-            display: none;
-        }
-    </style>
-</head>
-
-<body>
-
-    <h1>E-Shop Checkout</h1>
-
-    <div class="container">
-        <!-- Products Section -->
-        <div class="products">
-            <h2>Products</h2>
-            <div class="product">
-                <span>Wireless Headphones ($100)</span>
-                <button class="btn btn-add" onclick="addToCart('Wireless Headphones', 100)">Add to Cart</button>
-            </div>
-            <div class="product">
-                <span>Smart Watch ($150)</span>
-                <button class="btn btn-add" onclick="addToCart('Smart Watch', 150)">Add to Cart</button>
-            </div>
-            <div class="product">
-                <span>Laptop Stand ($50)</span>
-                <button class="btn btn-add" onclick="addToCart('Laptop Stand', 50)">Add to Cart</button>
-            </div>
-
-            <div class="cart-summary">
-                <h3>Cart Summary</h3>
-                <div id="cart-items"></div>
-                <p>Subtotal: $<span id="subtotal">0</span></p>
-
-                <div class="form-group">
-                    <label for="discount-code">Discount Code</label>
-                    <input type="text" id="discount-code" placeholder="Enter code">
-                    <button class="btn" onclick="applyDiscount()" style="margin-top: 5px;">Apply</button>
-                    <p id="discount-msg" class="error" style="color: blue; display: none;"></p>
-                </div>
-
-                <p><strong>Total: $<span id="total">0</span></strong></p>
-            </div>
-        </div>
-
-        <!-- Checkout Form -->
-        <div class="checkout-form">
-            <h2>Customer Details</h2>
-            <form id="checkout-form" onsubmit="processPayment(event)">
-                <div class="form-group">
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" required>
-                    <span class="error" id="name-error">Name is required</span>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" required>
-                    <span class="error" id="email-error">Please enter a valid email</span>
-                </div>
-
-                <div class="form-group">
-                    <label for="address">Address</label>
-                    <input type="text" id="address" required>
-                    <span class="error" id="address-error">Address is required</span>
-                </div>
-
-                <div class="form-group">
-                    <label>Shipping Method</label>
-                    <div>
-                        <input type="radio" name="shipping" id="shipping-standard" value="standard" checked
-                            onchange="updateTotal()">
-                        <label for="shipping-standard" style="display:inline;">Standard (Free)</label>
-                    </div>
-                    <div>
-                        <input type="radio" name="shipping" id="shipping-express" value="express"
-                            onchange="updateTotal()">
-                        <label for="shipping-express" style="display:inline;">Express ($10)</label>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Payment Method</label>
-                    <div>
-                        <input type="radio" name="payment" id="payment-cc" value="cc" checked>
-                        <label for="payment-cc" style="display:inline;">Credit Card</label>
-                    </div>
-                    <div>
-                        <input type="radio" name="payment" id="payment-paypal" value="paypal">
-                        <label for="payment-paypal" style="display:inline;">PayPal</label>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-pay" id="pay-btn">Pay Now</button>
-            </form>
-            <div id="success-message" class="success-msg">Payment Successful!</div>
-        </div>
+{% block content %}
+<div class="container mx-auto px-4 py-8 pb-32 md:pb-8">
+    <div class="flex items-center gap-2 mb-8">
+        <a href="{{ url_for('cart') }}" class="flex items-center gap-2 text-zinc-900 dark:text-white hover:opacity-80">
+            <span class="material-symbols-outlined text-2xl">arrow_back</span>
+            <h1 class="text-xl font-bold">Checkout</h1>
+        </a>
     </div>
 
-    <script>
-        let cart = [];
-        let discount = 0;
+    <div class="flex flex-col gap-8 lg:flex-row lg:gap-12">
+        <!-- Left Column: Checkout Steps -->
+        <div class="w-full lg:w-3/5 space-y-8">
+            <!-- Stepper -->
+            <div class="flex w-full flex-row items-center justify-between gap-2 px-2">
+                <div class="flex flex-col items-center flex-1 gap-2">
+                    <div
+                        class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-zinc-900 font-bold text-sm">
+                        1</div>
+                    <p class="text-sm font-semibold text-zinc-900 dark:text-white">Shipping</p>
+                </div>
+                <div class="flex-1 h-0.5 bg-zinc-300 dark:bg-zinc-700"></div>
+                <div class="flex flex-col items-center flex-1 gap-2">
+                    <div
+                        class="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 dark:text-zinc-400 font-bold text-sm">
+                        2</div>
+                    <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Payment</p>
+                </div>
+                <div class="flex-1 h-0.5 bg-zinc-300 dark:bg-zinc-700"></div>
+                <div class="flex flex-col items-center flex-1 gap-2">
+                    <div
+                        class="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 dark:text-zinc-400 font-bold text-sm">
+                        3</div>
+                    <p class="text-sm font-medium text-zinc-500 dark:text-zinc-400">Review</p>
+                </div>
+            </div>
 
-        function addToCart(name, price) {
-            const existingItem = cart.find(item => item.name === name);
-            if (existingItem) {
-                existingItem.qty++;
-            } else {
-                cart.push({ name, price, qty: 1 });
-            }
-            renderCart();
-        }
+            <form action="{{ url_for('checkout') }}" method="POST" id="checkout-form">
+                <!-- Shipping Address -->
+                <div class="space-y-4">
+                    <h2
+                        class="text-zinc-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pt-5">
+                        1. Shipping Address</h2>
+                    <div class="flex max-w-full flex-wrap items-end gap-4">
+                        <label class="flex flex-col min-w-40 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">Full
+                                Name</p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="Enter your full name" value="John Doe" />
+                        </label>
+                    </div>
+                    <div class="flex max-w-full flex-wrap items-end gap-4">
+                        <label class="flex flex-col min-w-40 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">Street
+                                Address</p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="Enter your street address" value="123 Innovation Drive" />
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <label class="flex flex-col min-w-0 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">City</p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="City" value="Techville" />
+                        </label>
+                        <label class="flex flex-col min-w-0 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">State
+                            </p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="State" value="CA" />
+                        </label>
+                        <label class="flex flex-col min-w-0 flex-1">
+                            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium leading-normal pb-2">ZIP Code
+                            </p>
+                            <input
+                                class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-300 bg-background-light px-4 py-3 text-base font-normal leading-normal text-zinc-900 placeholder:text-zinc-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500"
+                                placeholder="ZIP Code" value="94043" />
+                        </label>
+                    </div>
+                </div>
 
-        function renderCart() {
-            const cartDiv = document.getElementById('cart-items');
-            cartDiv.innerHTML = '';
-            let subtotal = 0;
-            cart.forEach((item, index) => {
-                subtotal += item.price * item.qty;
-                const div = document.createElement('div');
-                div.innerHTML = `
-                ${item.name} - $${item.price} x 
-                <input type="number" value="${item.qty}" min="1" style="width: 40px;" onchange="updateQty(${index}, this.value)">
-            `;
-                cartDiv.appendChild(div);
-            });
-            document.getElementById('subtotal').innerText = subtotal;
-            updateTotal();
-        }
+                <!-- Shipping Method -->
+                <div class="space-y-4 mt-8">
+                    <h2
+                        class="text-zinc-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pt-5">
+                        2. Shipping Method</h2>
+                    <div class="space-y-3">
+                        <label
+                            class="flex w-full cursor-pointer items-center justify-between gap-4 rounded-lg border border-primary bg-primary/10 p-4">
+                            <div class="flex items-center gap-4">
+                                <input checked="" class="h-5 w-5 border-zinc-300 text-primary focus:ring-primary"
+                                    name="shipping-method" type="radio" />
+                                <div>
+                                    <p class="font-semibold text-zinc-900 dark:text-white">Standard Shipping</p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">4-6 business days</p>
+                                </div>
+                            </div>
+                            <p class="font-semibold text-zinc-900 dark:text-white">$5.00</p>
+                        </label>
+                        <label
+                            class="flex w-full cursor-pointer items-center justify-between gap-4 rounded-lg border border-zinc-300 dark:border-zinc-700 p-4">
+                            <div class="flex items-center gap-4">
+                                <input class="h-5 w-5 border-zinc-300 text-primary focus:ring-primary"
+                                    name="shipping-method" type="radio" />
+                                <div>
+                                    <p class="font-semibold text-zinc-900 dark:text-white">Express Shipping</p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400">1-2 business days</p>
+                                </div>
+                            </div>
+                            <p class="font-semibold text-zinc-900 dark:text-white">$15.00</p>
+                        </label>
+                    </div>
+                </div>
 
-        function updateQty(index, qty) {
-            if (qty < 1) return;
-            cart[index].qty = parseInt(qty);
-            renderCart();
-        }
+                <!-- CTA Button -->
+                <div class="pt-8">
+                    <button type="submit"
+                        class="flex w-full items-center justify-center rounded-lg bg-primary h-12 px-6 text-base font-bold text-zinc-900 transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark">
+                        Place Order
+                    </button>
+                </div>
+            </form>
+        </div>
 
-        function applyDiscount() {
-            const code = document.getElementById('discount-code').value;
-            const msg = document.getElementById('discount-msg');
-            if (code === 'SAVE15') {
-                discount = 0.15;
-                msg.innerText = "15% Discount Applied!";
-                msg.style.display = 'block';
-                msg.style.color = 'green';
-            } else {
-                discount = 0;
-                msg.innerText = "Invalid Code";
-                msg.style.display = 'block';
-                msg.style.color = 'red';
-            }
-            updateTotal();
-        }
-
-        function updateTotal() {
-            let subtotal = 0;
-            cart.forEach(item => subtotal += item.price * item.qty);
-
-            let shipping = document.getElementById('shipping-express').checked ? 10 : 0;
-            let total = subtotal * (1 - discount) + shipping;
-
-            document.getElementById('total').innerText = total.toFixed(2);
-        }
-
-        function processPayment(e) {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const address = document.getElementById('address').value;
-
-            let valid = true;
-
-            if (!name) {
-                document.getElementById('name-error').style.display = 'block';
-                valid = false;
-            } else {
-                document.getElementById('name-error').style.display = 'none';
-            }
-
-            if (!email || !email.includes('@')) {
-                document.getElementById('email-error').style.display = 'block';
-                valid = false;
-            } else {
-                document.getElementById('email-error').style.display = 'none';
-            }
-
-            if (!address) {
-                document.getElementById('address-error').style.display = 'block';
-                valid = false;
-            } else {
-                document.getElementById('address-error').style.display = 'none';
-            }
-
-            if (valid) {
-                document.getElementById('success-message').style.display = 'block';
-                document.getElementById('pay-btn').disabled = true;
-            }
-        }
-    </script>
-
-</body>
-
-</html>
+        <!-- Right Column: Order Summary -->
+        <div class="w-full lg:w-2/5 lg:sticky lg:top-24 h-fit">
+            <div
+                class="border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 rounded-xl p-6 space-y-4">
+                <h3 class="text-xl font-bold text-zinc-900 dark:text-white">Order Summary</h3>
+                <div class="space-y-4">
+                    {% for item in items %}
+                    <div class="flex items-center gap-4">
+                        <img class="h-20 w-20 rounded-lg object-cover" src="{{ item.product.image_url }}"
+                            alt="{{ item.product.name }}">
+                        <div class="flex-1">
+                            <p class="font-semibold text-zinc-900 dark:text-white">{{ item.product.name }}</p>
+                            <p class="text-sm text-zinc-500 dark:text-zinc-400">Qty: {{ item.quantity }}</p>
+                        </div>
+                        <p class="font-semibold text-zinc-900 dark:text-white">${{ "%.2f"|format(item.product.price *
+                            item.quantity) }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="border-t border-zinc-200 dark:border-zinc-700 pt-4 space-y-2">
+                    <div class="flex justify-between text-sm text-zinc-600 dark:text-zinc-300">
+                        <span>Subtotal</span>
+                        <span>${{ "%.2f"|format(total) }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-zinc-600 dark:text-zinc-300">
+                        <span>Shipping</span>
+                        <span>$5.00</span>
+                    </div>
+                </div>
+                <div class="border-t border-zinc-200 dark:border-zinc-700 pt-4">
+                    <div class="flex justify-between font-bold text-lg text-zinc-900 dark:text-white">
+                        <span>Total</span>
+                        <span>${{ "%.2f"|format(total + 5) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
